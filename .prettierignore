@@ -1,0 +1,11 @@
+node_modules
+.next
+pnpm-lock.yaml
+public/pdf.worker.min.mjs
+playwright-report
+test-results
+.demo-data
+
+.next-e2e/
+
+.demo-data-e2e/

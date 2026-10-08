@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: ued
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && pnpm install --frozen-lockfile && pnpm build
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /__render_health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.7
+      - key: NODE_VERSION
+        value: 24.9.0
+      - key: DEMO_MODE
+        value: "true"
+      - key: DEMO_ADMIN_ENABLED
+        value: "false"
+      - key: MAX_UPLOAD_SIZE_MB
+        value: "3"
+      - key: NEXT_PUBLIC_SITE_URL
+        fromService:
+          type: web
+          name: ued
+          envVarKey: RENDER_EXTERNAL_HOSTNAME

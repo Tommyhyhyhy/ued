@@ -1,0 +1,21 @@
+node_modules/
+.pnpm-store/
+.next/
+.env*
+!.env.example
+*.tsbuildinfo
+playwright-report/
+test-results/
+.demo-data/
+*.log
+.sites-runtime/
+public/pdf.worker.min.mjs
+
+.demo-data-e2e/
+
+.next-e2e/
+/output/
+/tmp/
+/web python nâng cao/
+__pycache__/
+*.pyc
