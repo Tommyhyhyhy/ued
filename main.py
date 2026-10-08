@@ -45,14 +45,23 @@ async def wait_for_next(client: httpx.AsyncClient, process: asyncio.subprocess.P
 async def lifespan(app: FastAPI):
     env = os.environ.copy()
     env["PORT"] = str(NEXT_PORT)
+    env["HOSTNAME"] = NEXT_HOST
+    use_standalone = bool(os.getenv("RENDER")) or os.getenv("NEXT_STANDALONE") == "true"
+    next_command = (
+        ["node", ".next/standalone/server.js"]
+        if use_standalone
+        else [
+            "node",
+            "node_modules/next/dist/bin/next",
+            "start",
+            "--hostname",
+            NEXT_HOST,
+            "--port",
+            str(NEXT_PORT),
+        ]
+    )
     process = await asyncio.create_subprocess_exec(
-        "node",
-        "node_modules/next/dist/bin/next",
-        "start",
-        "--hostname",
-        NEXT_HOST,
-        "--port",
-        str(NEXT_PORT),
+        *next_command,
         env=env,
         creationflags=0 if os.name != "nt" else 0x08000000,
     )

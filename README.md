@@ -169,6 +169,8 @@ pip install -r requirements.txt && pnpm install --frozen-lockfile && pnpm build
 uvicorn main:app --host 0.0.0.0 --port $PORT
 ```
 
+Nếu tạo Web Service thủ công, **Build Command phải chứa đủ ba bước** như trên. Chỉ chạy `pip install -r requirements.txt` sẽ không tạo gói Next.js standalone và dịch vụ không thể khởi động.
+
 Health check là `/__render_health`. Render tự điền hostname public vào `NEXT_PUBLIC_SITE_URL`. Bản Blueprint mặc định bật demo công khai và tắt đăng nhập admin demo. Dữ liệu/file ghi trong demo mode có thể mất khi Render khởi động lại; để vận hành thật, cấu hình Supabase và đặt `DEMO_MODE=false` trong Dashboard.
 
 ## Vận hành tiếp theo
