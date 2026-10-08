@@ -1,3 +1,5 @@
 fastapi==0.118.0
 httpx==0.28.1
 uvicorn[standard]==0.37.0
+# Build the Node frontend during Render's existing pip-only build command.
+.

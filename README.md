@@ -163,13 +163,15 @@ Khi tạo **Blueprint** từ repository trên Render, cấu hình sẽ tự dùn
 
 ```sh
 # Build command
-pip install -r requirements.txt && pnpm install --frozen-lockfile && pnpm build
+pip install --verbose -r requirements.txt
 
 # Start command
 uvicorn main:app --host 0.0.0.0 --port $PORT
 ```
 
-Nếu tạo Web Service thủ công, **Build Command phải chứa đủ ba bước** như trên. Chỉ chạy `pip install -r requirements.txt` sẽ không tạo gói Next.js standalone và dịch vụ không thể khởi động.
+`requirements.txt` cài thêm project Python tại chỗ (`.`). Trên Render, bước này tự cài đúng phiên bản pnpm trong `package.json`, cài đủ dependencies (bao gồm công cụ build), chạy `pnpm build` và khởi động thử máy chủ standalone. Do đó Build Command cũ `pip install -r requirements.txt` cũng hoạt động. Bước kiểm tra tải trang chủ, đăng nhập, danh sách tài liệu, PDF mẫu và CSS/JS; bất kỳ lỗi nào đều làm build thất bại. Log thành công phải có dòng `UED: standalone build and runtime checks passed`.
+
+Build diễn ra ở bước cài đặt, không phải lúc khởi động Uvicorn. Để tái hiện ngoài Render: đặt `UED_BUILD_FRONTEND=true` rồi chạy lệnh build ở trên. GitHub Actions `Render runtime check` thực hiện cả build Python-only và kiểm tra Uvicorn trên Linux với Python 3.14 / Node 24.9.0.
 
 Health check là `/__render_health`. Render tự điền hostname public vào `NEXT_PUBLIC_SITE_URL`. Bản Blueprint mặc định bật demo công khai và tắt đăng nhập admin demo. Dữ liệu/file ghi trong demo mode có thể mất khi Render khởi động lại; để vận hành thật, cấu hình Supabase và đặt `DEMO_MODE=false` trong Dashboard.
 

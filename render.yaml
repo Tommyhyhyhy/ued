@@ -3,7 +3,7 @@ services:
     name: ued
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt && pnpm install --frozen-lockfile && pnpm build
+    buildCommand: pip install --verbose -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /__render_health
     envVars:

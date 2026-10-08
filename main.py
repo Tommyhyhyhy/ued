@@ -6,6 +6,7 @@ import asyncio
 import os
 import signal
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import httpx
 from fastapi import FastAPI, Request
@@ -13,6 +14,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from starlette.background import BackgroundTask
 
 NEXT_HOST = "127.0.0.1"
+ROOT = Path(__file__).resolve().parent
 NEXT_PORT = int(os.getenv("NEXT_INTERNAL_PORT", "3001"))
 NEXT_ORIGIN = f"http://{NEXT_HOST}:{NEXT_PORT}"
 HOP_BY_HOP = {
@@ -28,17 +30,17 @@ HOP_BY_HOP = {
 
 
 async def wait_for_next(client: httpx.AsyncClient, process: asyncio.subprocess.Process) -> None:
-    for _ in range(120):
+    for _ in range(480):
         if process.returncode is not None:
             raise RuntimeError(f"Next.js stopped during startup with exit code {process.returncode}")
         try:
-            response = await client.get(NEXT_ORIGIN, timeout=1)
+            response = await client.get(f"{NEXT_ORIGIN}/dang-nhap", timeout=1)
             if response.status_code < 500:
                 return
         except httpx.HTTPError:
             pass
         await asyncio.sleep(0.25)
-    raise RuntimeError("Next.js did not become ready within 30 seconds")
+    raise RuntimeError("Next.js did not become ready within 120 seconds")
 
 
 @asynccontextmanager
@@ -47,6 +49,12 @@ async def lifespan(app: FastAPI):
     env["PORT"] = str(NEXT_PORT)
     env["HOSTNAME"] = NEXT_HOST
     use_standalone = bool(os.getenv("RENDER")) or os.getenv("NEXT_STANDALONE") == "true"
+    if use_standalone and not (ROOT / ".next" / "standalone" / "server.js").is_file():
+        raise RuntimeError(
+            "Missing Next.js standalone build. Deploy the latest commit and run "
+            "pip install --verbose -r requirements.txt in the Render build step. "
+            "The build log must show 'UED: standalone build and runtime checks passed'."
+        )
     next_command = (
         ["node", ".next/standalone/server.js"]
         if use_standalone
@@ -62,6 +70,7 @@ async def lifespan(app: FastAPI):
     )
     process = await asyncio.create_subprocess_exec(
         *next_command,
+        cwd=ROOT,
         env=env,
         creationflags=0 if os.name != "nt" else 0x08000000,
     )
@@ -106,7 +115,7 @@ async def proxy(request: Request, path: str) -> StreamingResponse:
         if key.lower() not in HOP_BY_HOP and key.lower() not in {"host", "content-length"}
     }
     headers["x-forwarded-host"] = request.headers.get("host", "")
-    headers["x-forwarded-proto"] = request.url.scheme
+    headers["x-forwarded-proto"] = request.headers.get("x-forwarded-proto", request.url.scheme)
     upstream = await app.state.client.send(
         app.state.client.build_request(
             request.method,

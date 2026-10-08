@@ -19,3 +19,7 @@ public/pdf.worker.min.mjs
 /web python nâng cao/
 __pycache__/
 *.pyc
+build/
+dist/
+*.egg-info/
+.venv/

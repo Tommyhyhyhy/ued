@@ -1,0 +1,30 @@
+name: Render runtime check
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      UED_BUILD_FRONTEND: 'true'
+      DEMO_MODE: 'true'
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.9.0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      # This reproduces the user's actual Python-only Render build command.
+      - run: pip install --verbose -r requirements.txt
+      - name: Check Uvicorn with the standalone server
+        run: python scripts/check_uvicorn.py
